@@ -1,0 +1,27 @@
+---
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  become: yes
+
+- name: Install base utility packages
+  ansible.builtin.apt:
+    name:
+      - curl
+      - git
+      - htop
+      - unzip
+      - apt-transport-https
+      - ca-certificates
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Ensure application user exists
+  ansible.builtin.user:
+    name: appuser
+    comment: "Application service account"
+    createhome: yes
+    shell: /bin/bash
+  become: yes

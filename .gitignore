@@ -22,3 +22,20 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# Ansible
+*.retry
+inventory/*.retry
+
+# Backup and temporary files
+acx-platform-infra-backup/
+*.py
+!ansible/requirements.yml
+
+# Local Terraform secrets
+terraform/environments/dev/secret.tfvars
