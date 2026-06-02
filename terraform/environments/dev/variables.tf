@@ -1,6 +1,6 @@
 variable "resource_group_name" {
   type    = string
-  default = "rg-devops-eval-dev"
+  default = "endava-playground"
 }
 
 variable "location" {
@@ -51,7 +51,7 @@ variable "vm_name_prefix" {
 
 variable "vm_size" {
   type    = string
-  default = "Standard_B2s"
+  default = "Standard_D2s_v3"
 }
 
 variable "admin_username" {
@@ -71,12 +71,18 @@ variable "admin_source_cidr" {
 
 variable "key_vault_name" {
   type    = string
-  default = "kv-devops-dev"
+  default = "kv-devops-rubal-dev"
 }
 
 variable "log_analytics_name" {
   type    = string
   default = "law-devops-dev"
+}
+
+variable "enable_monitoring" {
+  description = "Enable Log Analytics and diagnostic settings. Set false if you do not have Log Analytics write permission."
+  type        = bool
+  default     = false
 }
 
 variable "tags" {

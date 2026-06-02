@@ -61,7 +61,6 @@ resource "azurerm_linux_virtual_machine" "main" {
 }
 
 resource "azurerm_network_interface_backend_address_pool_association" "lb" {
-  count                   = var.lb_backend_address_pool_id == "" ? 0 : 1
   network_interface_id    = azurerm_network_interface.main.id
   ip_configuration_name   = azurerm_network_interface.main.ip_configuration[0].name
   backend_address_pool_id = var.lb_backend_address_pool_id

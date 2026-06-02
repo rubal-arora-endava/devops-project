@@ -24,7 +24,7 @@ module "resource_group" {
 module "vnet" {
   source              = "../../modules/vnet"
   name                = var.vnet_name
-  location            = var.location
+  location            = module.resource_group.resource_group_location
   resource_group_name = module.resource_group.resource_group_name
   address_space       = var.address_space
   tags                = var.tags
@@ -51,7 +51,7 @@ locals {
 module "nsg_web" {
   source              = "../../modules/nsg"
   name                = "nsg-web"
-  location            = var.location
+  location            = module.resource_group.resource_group_location
   resource_group_name = module.resource_group.resource_group_name
   tags                = var.tags
   security_rules      = local.web_nsg_rules
@@ -60,7 +60,7 @@ module "nsg_web" {
 module "load_balancer" {
   source              = "../../modules/load_balancer"
   name                = var.load_balancer_name
-  location            = var.location
+  location            = module.resource_group.resource_group_location
   resource_group_name = module.resource_group.resource_group_name
   tags                = var.tags
 }
@@ -69,14 +69,14 @@ module "web_vm_1" {
   source                     = "../../modules/linux_vm"
   name                       = "${var.vm_name_prefix}-01"
   resource_group_name        = module.resource_group.resource_group_name
-  location                   = var.location
+  location                   = module.resource_group.resource_group_location
   vm_size                    = var.vm_size
   admin_username             = var.admin_username
   ssh_public_key             = var.ssh_public_key
   subnet_id                  = module.subnets.subnet_ids["web"]
   network_security_group_id  = module.nsg_web.id
   lb_backend_address_pool_id = module.load_balancer.lb_backend_address_pool_id
-  enable_public_ip           = false
+  enable_public_ip           = true
   tags                       = var.tags
 }
 
@@ -84,29 +84,30 @@ module "web_vm_2" {
   source                     = "../../modules/linux_vm"
   name                       = "${var.vm_name_prefix}-02"
   resource_group_name        = module.resource_group.resource_group_name
-  location                   = var.location
+  location                   = module.resource_group.resource_group_location
   vm_size                    = var.vm_size
   admin_username             = var.admin_username
   ssh_public_key             = var.ssh_public_key
   subnet_id                  = module.subnets.subnet_ids["web"]
   network_security_group_id  = module.nsg_web.id
   lb_backend_address_pool_id = module.load_balancer.lb_backend_address_pool_id
-  enable_public_ip           = false
+  enable_public_ip           = true
   tags                       = var.tags
 }
 
 module "key_vault" {
   source              = "../../modules/keyvault"
   name                = var.key_vault_name
-  location            = var.location
+  location            = module.resource_group.resource_group_location
   resource_group_name = module.resource_group.resource_group_name
   tags                = var.tags
 }
 
 module "monitoring" {
   source              = "../../modules/monitoring"
+  count               = var.enable_monitoring ? 1 : 0
   name                = var.log_analytics_name
-  location            = var.location
+  location            = module.resource_group.resource_group_location
   resource_group_name = module.resource_group.resource_group_name
   tags                = var.tags
 }
@@ -132,9 +133,10 @@ resource "azurerm_key_vault_access_policy" "web_vms" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "key_vault" {
+  count                      = var.enable_monitoring ? 1 : 0
   name                       = "diag-keyvault"
   target_resource_id         = module.key_vault.keyvault_id
-  log_analytics_workspace_id = module.monitoring.workspace_id
+  log_analytics_workspace_id = try(module.monitoring[0].workspace_id, null)
 
   log {
     category = "AuditEvent"

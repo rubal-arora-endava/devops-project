@@ -13,29 +13,21 @@ provider "azurerm" {
 
 variable "resource_group_name" {
   type    = string
-  default = "rg-tfstate-dev"
+  default = "endava-playground"
 }
 
-variable "location" {
-  type    = string
-  default = "East US"
-}
-
-resource "azurerm_resource_group" "bootstrap" {
-  name     = var.resource_group_name
-  location = var.location
-  tags = {
-    Environment = "dev"
-    Purpose     = "TerraformState"
-    Owner       = "Rubal Arora"
-    Project     = "DevOps-Evaluation"
-  }
+# The bootstrap uses an existing resource group (Path A) and creates only
+# the storage account + container inside it. The resource group's name is
+# provided via `resource_group_name` and the location is read from the
+# data source to avoid mismatches.
+data "azurerm_resource_group" "existing" {
+  name = var.resource_group_name
 }
 
 resource "azurerm_storage_account" "tfstate" {
   name                     = "stdevopsevaltfs01"
-  resource_group_name      = azurerm_resource_group.bootstrap.name
-  location                 = azurerm_resource_group.bootstrap.location
+  resource_group_name      = data.azurerm_resource_group.existing.name
+  location                 = data.azurerm_resource_group.existing.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
   identity {
