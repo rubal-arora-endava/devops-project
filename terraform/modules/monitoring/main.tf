@@ -6,7 +6,3 @@ resource "azurerm_log_analytics_workspace" "main" {
   retention_in_days   = 30
   tags                = var.tags
 }
-
-output "workspace_id" {
-  value = azurerm_log_analytics_workspace.main.id
-}

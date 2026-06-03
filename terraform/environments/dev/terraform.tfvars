@@ -20,7 +20,7 @@ web_nsg_rules = {
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
-    source_address_prefix      = "<admin-source-cidr>"
+    source_address_prefix      = "134.231.182.94/32"
     destination_address_prefix = "*"
     destination_port_range     = "22"
   }
@@ -30,7 +30,7 @@ web_nsg_rules = {
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
-    source_address_prefix      = "AzureLoadBalancer"
+    source_address_prefix      = "internet"
     destination_address_prefix = "*"
     destination_port_range     = "80"
   }

@@ -1,20 +1,24 @@
 variable "resource_group_name" {
   type    = string
+  description = "Name of the resource."
   default = "endava-playground"
 }
 
 variable "location" {
   type    = string
+  description = "Location of the resource."
   default = "East US"
 }
 
 variable "vnet_name" {
   type    = string
+  description = "Name of the resource."
   default = "vnet-devops-dev"
 }
 
 variable "address_space" {
   type    = list(string)
+  description = "Name of the resource."
   default = ["10.0.0.0/16"]
 }
 
@@ -41,16 +45,19 @@ variable "web_nsg_rules" {
 
 variable "load_balancer_name" {
   type    = string
+  description = "Name of the resource."
   default = "lb-devops-dev"
 }
 
 variable "vm_name_prefix" {
   type    = string
+  description = "Prefix of the resource."
   default = "webvm-devops"
 }
 
 variable "vm_size" {
   type    = string
+  description = "Size of the resource."
   default = "Standard_D2s_v3"
 }
 
@@ -71,11 +78,13 @@ variable "admin_source_cidr" {
 
 variable "key_vault_name" {
   type    = string
+  description = "Name of the resource."
   default = "kv-devops-rubal-dev"
 }
 
 variable "log_analytics_name" {
   type    = string
+  description = "Name of the resource."
   default = "law-devops-dev"
 }
 
