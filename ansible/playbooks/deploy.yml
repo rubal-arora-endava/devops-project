@@ -1,0 +1,31 @@
+---
+- name: Deploy Nginx web workload to Azure VMs
+  hosts: webservers
+  become: yes
+  gather_facts: yes
+
+  roles:
+    - base
+    - webserver
+
+  tasks:
+    - name: Confirm nginx service is running on all webservers
+      ansible.builtin.systemd:
+        name: nginx
+        state: started
+      register: nginx_status
+      ignore_errors: true
+
+    - name: Check web service health endpoint
+      ansible.builtin.uri:
+        url: http://localhost/
+        method: GET
+        status_code: 200
+      register: service_health
+      retries: 6
+      delay: 10
+      until: service_health.status == 200
+
+    - name: Report deployment status
+      ansible.builtin.debug:
+        msg: "Web service is reachable and healthy on {{ inventory_hostname }}"

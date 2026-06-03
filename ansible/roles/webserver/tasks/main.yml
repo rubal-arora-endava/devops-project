@@ -1,0 +1,45 @@
+---
+- name: Install nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Create web content directory
+  ansible.builtin.file:
+    path: "{{ web_root }}"
+    state: directory
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    mode: '0755'
+  become: yes
+
+- name: Render web application landing page
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: "{{ web_root }}/index.html"
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    mode: '0644'
+  become: yes
+  notify:
+    - restart nginx
+
+- name: Ensure nginx is enabled and started
+  ansible.builtin.systemd:
+    name: nginx
+    enabled: yes
+    state: started
+    daemon_reload: yes
+  become: yes
+
+- name: Validate nginx root endpoint
+  ansible.builtin.uri:
+    url: http://localhost/
+    method: GET
+    status_code: 200
+  register: nginx_health
+  retries: 6
+  delay: 10
+  until: nginx_health.status == 200

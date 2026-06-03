@@ -1,0 +1,6 @@
+---
+web_root: /var/www/html
+web_user: www-data
+web_group: www-data
+nginx_site_name: "DevOps Evaluation Web App"
+environment_name: "dev"
