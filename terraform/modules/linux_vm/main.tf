@@ -65,7 +65,3 @@ resource "azurerm_network_interface_backend_address_pool_association" "lb" {
   ip_configuration_name   = azurerm_network_interface.main.ip_configuration[0].name
   backend_address_pool_id = var.lb_backend_address_pool_id
 }
-
-output "principal_id" {
-  value = azurerm_linux_virtual_machine.main.identity[0].principal_id
-}

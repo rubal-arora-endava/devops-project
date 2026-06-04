@@ -1,9 +1,5 @@
 variable "resource_group_name" {
-  type    = string
-  default = "rg-devops-eval-dev"
-}
-
-variable "location" {
-  type    = string
-  default = "East US"
+  description = "Name of the existing resource group that stores the Terraform state account."
+  type        = string
+  default     = "endava-playground"
 }
