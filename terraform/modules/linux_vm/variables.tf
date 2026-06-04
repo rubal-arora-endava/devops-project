@@ -7,14 +7,14 @@ variable "resource_group_name" {
 }
 
 variable "location" {
-  type = string
+  type        = string
   description = "location of the resource."
 }
 
 variable "vm_size" {
-  type    = string
+  type        = string
   description = "Size of the resource."
-  default = "Standard_D2s_v3"
+  default     = "Standard_D2s_v3"
 }
 
 variable "admin_username" {

@@ -12,7 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     environment: development
     env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      ARM_USE_OIDC: "true"
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+      TF_IN_AUTOMATION: "true"
+      TF_INPUT: "false"
+      TF_VAR_app_secret_value: ${{ secrets.APP_SECRET_VALUE }}
 
     steps:
       - name: Checkout repository
@@ -23,6 +30,9 @@ jobs:
         with:
           terraform_version: 1.5.0
 
+      - name: Terraform Fmt Check
+        run: terraform fmt -check -recursive terraform/
+
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -32,11 +42,15 @@ jobs:
 
       - name: Terraform Init
         working-directory: terraform/environments/dev
-        run: terraform init
+        run: terraform init -input=false
+
+      - name: Terraform Validate
+        working-directory: terraform/environments/dev
+        run: terraform validate
 
       - name: Terraform Plan
         working-directory: terraform/environments/dev
-        run: terraform plan -out=tfplan
+        run: terraform plan -out=tfplan -input=false
 
       - name: Terraform Apply
         working-directory: terraform/environments/dev

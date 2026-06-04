@@ -3,7 +3,7 @@ variable "resource_group_name" {
 }
 
 variable "virtual_network_name" {
-  type = string
+  type        = string
   description = "Name of the resource."
 }
 

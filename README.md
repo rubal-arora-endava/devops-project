@@ -1,148 +1,73 @@
 # devops-project
 
-This repository contains an Azure DevOps evaluation implementation using Terraform for infrastructure provisioning and Ansible for Linux application deployment.
+Azure DevOps evaluation project using Terraform for Azure infrastructure and Ansible for Linux web server configuration.
 
-## Repository structure
+## What This Deploys
 
-- `terraform/` - Azure infrastructure as code
-- `ansible/` - configuration management and deployment playbooks
-- `docs/` - architecture diagrams, deployment guide, and supporting documentation
-- `.github/workflows/` - CI pipeline for Terraform validation and plan
+- Existing Azure resource group reference.
+- Virtual network and web subnet.
+- Network Security Group with SSH and HTTP rules.
+- Two Ubuntu Linux VMs with system-assigned managed identities.
+- Standard public Azure Load Balancer.
+- Azure Key Vault with runtime secret storage and VM get/list access.
+- Optional Log Analytics workspace and diagnostic settings.
+- Ansible-managed Nginx web service.
 
-devops-project/
-├── README.md
-├── docs/
-│   ├── architecture.md
-│   ├── architecture-diagram.png
-│   ├── daily-updates.md
-│   └── walkthrough.md
-├── terraform/
-│   ├── bootstrap/
-│   │   └── dev/
-│   │       ├── main.tf
-│   │       ├── outputs.tf
-│   │       └── variables.tf
-│   ├── environments/
-│   │   └── dev/
-│   │       ├── main.tf
-│   │       ├── providers.tf
-│   │       ├── backend.tf
-│   │       ├── variables.tf
-│   │       ├── outputs.tf
-│   │       ├── terraform.tfvars
-│   │       └── .terraform.lock.hcl
-│   └── modules/
-│       ├── resource_group/
-│       ├── vnet/
-│       ├── subnets/
-│       ├── nsg/
-│       ├── linux_vm/
-│       ├── load_balancer/
-│       ├── keyvault/
-│       └── monitoring/
-├── ansible/
-│   ├── README.md
-│   ├── ansible.cfg
-│   ├── inventory/
-│   │   └── dev.yml
-│   ├── playbooks/
-│   │   └── deploy.yml
-│   ├── requirements.yml
-│   ├── roles/
-│   │   ├── base/
-│   │   ├── java/
-│   │   └── webserver/
-│   │       ├── handlers/main.yml
-│   │       ├── tasks/main.yml
-│   │       └── templates/index.html.j2
-│   └── group_vars/
-│       └── all.yml
-└── .github/
-    └── workflows/
-        └── terraform-validate.yml
+## Repository Structure
 
+```text
+.
+|-- .github/workflows/        # Terraform validate, plan, and deploy workflows
+|-- ansible/                  # Inventory, playbooks, and roles
+|-- docs/                     # Architecture and operating guides
+`-- terraform/
+    |-- bootstrap/dev/        # Optional Azure Storage backend bootstrap
+    |-- environments/dev/     # Dev environment composition
+    `-- modules/             # Reusable Terraform modules
+```
 
-## Terraform state approach:
+## Key Docs
 
-Create one Azure Storage Account only for state, for example:
+- [Deployment and destroy guide](docs/DEPLOYMENT.md)
+- [Key Vault and secret handling](docs/SECRETS.md)
+- [Monitoring and logging](docs/MONITORING.md)
+- [Terraform CI pipeline](docs/TERRAFORM_PIPELINE.md)
+- [Terraform structure](docs/terraform-structure.md)
+- [Architecture overview](docs/architecture.md)
 
-Resource group: rg-dte-rubal-tfstate-dev
-Storage account: stdterubaltfstate
-Container: tfstate
-State key: devops-project/dev.terraform.tfstate
+## Quick Start
 
-In backend.tf:
+1. Create `terraform/environments/dev/secret.tfvars` from `secret.tfvars.example`.
+2. Set `app_secret_value` in that local file or through `TF_VAR_app_secret_value`.
+3. Initialize, validate, plan, and apply:
 
-terraform {
-  backend "azurerm" {
-    resource_group_name  = "rg-dte-rubal-tfstate-dev"
-    storage_account_name = "stdterubaltfstate"
-    container_name       = "tfstate"
-    key                  = "devops-project/dev.terraform.tfstate"
-  }
-}
-
-You create the backend storage once manually or with a small terraform/bootstrap folder. After that, normal Terraform uses remote state.
-
-## Getting started
-
-1. Configure GitHub repository secrets for Azure authentication. The workflows use the existing ARM_* secrets:
-   - `ARM_CLIENT_ID`
-   - `ARM_CLIENT_SECRET`
-   - `ARM_SUBSCRIPTION_ID`
-   - `ARM_TENANT_ID`
-
-   You may also optionally configure an `AZURE_CREDENTIALS` JSON secret if you prefer, but it is not required.
-
-2. Create a local secret vars file for Terraform values that should not be committed:
-   - `terraform/environments/dev/secret.tfvars`
-   - Add this file to `.gitignore`
-
-   Example `terraform/environments/dev/secret.tfvars`:
-   ```hcl
-   ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDFbp2GK1bOfYos..."
-   admin_source_cidr = "x.y.z.z/32"
-   ```
-
-3. Provision the Terraform backend:
-   ```bash
-   cd terraform/bootstrap/dev
-   terraform init
-   terraform apply
-   ```
-
-3. Deploy infrastructure:
    ```bash
    cd terraform/environments/dev
-   terraform init
-   terraform plan -out=tfplan
+   terraform init -backend=false
+   terraform fmt -recursive ../..
+   terraform validate
+   terraform plan -out=tfplan -var-file=secret.tfvars
    terraform apply tfplan
    ```
 
-4. CI workflows:
-   - `terraform-validate.yml` runs on PRs and does `terraform fmt -check` and `terraform validate` only.
-   - `terraform-plan.yml` is a manual workflow that runs `terraform plan` against the remote backend after bootstrap.
-   - `terraform-deploy.yml` is a manual workflow that runs `terraform plan` and then `terraform apply` against the remote backend once the backend and Azure auth are ready.
+4. Update `ansible/inventory/dev.yml` with VM IPs from `terraform output`.
+5. Run Ansible:
 
-
-4. Update Ansible inventory with VM IPs.
-5. Run Ansible deployment:
    ```bash
-   cd ansible
+   cd ../../../ansible
    ansible-galaxy install -r requirements.yml
    ansible-playbook playbooks/deploy.yml
    ```
-## Define naming and tags
-### Tags:
 
-owner       = "rubal.arora@endava.com"
-environment = "dev"
-cost_center = "devops-evaluation"
-purpose     = "technical-evaluation"
+## CI
 
+The manual `Terraform Plan` workflow runs fmt, validate, and plan through GitHub Actions. Configure these secrets before running it:
 
-## Notes
+```text
+ARM_CLIENT_ID
+ARM_SUBSCRIPTION_ID
+ARM_TENANT_ID
+APP_SECRET_VALUE
+```
 
-- The Terraform backend is configured to use Azure Storage Account state.
-- The Ansible playbook deploys an Nginx web service and validates the root endpoint.
-- Replace placeholder SSH key and IP addresses before running playbooks.
+The workflows use GitHub OIDC for Azure authentication and do not require an Azure client secret.

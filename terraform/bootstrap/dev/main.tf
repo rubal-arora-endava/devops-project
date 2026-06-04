@@ -11,11 +11,6 @@ provider "azurerm" {
   features {}
 }
 
-variable "resource_group_name" {
-  type    = string
-  default = "endava-playground"
-}
-
 # The bootstrap uses an existing resource group (Path A) and creates only
 # the storage account + container inside it. The resource group's name is
 # provided via `resource_group_name` and the location is read from the

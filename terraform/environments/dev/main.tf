@@ -103,12 +103,39 @@ module "key_vault" {
   tags                = var.tags
 }
 
+resource "azurerm_key_vault_access_policy" "terraform_current" {
+  key_vault_id = module.key_vault.keyvault_id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  secret_permissions = [
+    "Delete",
+    "Get",
+    "List",
+    "Purge",
+    "Recover",
+    "Set",
+  ]
+}
+
+resource "azurerm_key_vault_secret" "app_secret" {
+  name         = var.app_secret_name
+  value        = var.app_secret_value
+  key_vault_id = module.key_vault.keyvault_id
+  content_type = "text/plain"
+  tags         = var.tags
+
+  depends_on = [azurerm_key_vault_access_policy.terraform_current]
+}
+
 module "monitoring" {
   source              = "../../modules/monitoring"
   count               = var.enable_monitoring ? 1 : 0
   name                = var.log_analytics_name
   location            = module.resource_group.resource_group_location
   resource_group_name = module.resource_group.resource_group_name
+  sku                 = var.log_analytics_sku
+  retention_in_days   = var.log_retention_in_days
   tags                = var.tags
 }
 
@@ -132,20 +159,84 @@ resource "azurerm_key_vault_access_policy" "web_vms" {
   ]
 }
 
+data "azurerm_monitor_diagnostic_categories" "key_vault" {
+  count       = var.enable_monitoring ? 1 : 0
+  resource_id = module.key_vault.keyvault_id
+}
+
+data "azurerm_monitor_diagnostic_categories" "nsg" {
+  count       = var.enable_monitoring ? 1 : 0
+  resource_id = module.nsg_web.id
+}
+
+data "azurerm_monitor_diagnostic_categories" "load_balancer" {
+  count       = var.enable_monitoring ? 1 : 0
+  resource_id = module.load_balancer.id
+}
+
 resource "azurerm_monitor_diagnostic_setting" "key_vault" {
   count                      = var.enable_monitoring ? 1 : 0
   name                       = "diag-keyvault"
   target_resource_id         = module.key_vault.keyvault_id
-  log_analytics_workspace_id = try(module.monitoring[0].workspace_id, null)
+  log_analytics_workspace_id = module.monitoring[0].workspace_id
 
-  log {
-    category = "AuditEvent"
-    enabled  = true
+  dynamic "enabled_log" {
+    for_each = toset(data.azurerm_monitor_diagnostic_categories.key_vault[0].log_category_types)
+    content {
+      category = enabled_log.value
+    }
   }
 
-  metric {
-    category = "AllMetrics"
-    enabled  = true
+  dynamic "metric" {
+    for_each = toset(data.azurerm_monitor_diagnostic_categories.key_vault[0].metrics)
+    content {
+      category = metric.value
+      enabled  = true
+    }
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "nsg" {
+  count                      = var.enable_monitoring ? 1 : 0
+  name                       = "diag-nsg-web"
+  target_resource_id         = module.nsg_web.id
+  log_analytics_workspace_id = module.monitoring[0].workspace_id
+
+  dynamic "enabled_log" {
+    for_each = toset(data.azurerm_monitor_diagnostic_categories.nsg[0].log_category_types)
+    content {
+      category = enabled_log.value
+    }
+  }
+
+  dynamic "metric" {
+    for_each = toset(data.azurerm_monitor_diagnostic_categories.nsg[0].metrics)
+    content {
+      category = metric.value
+      enabled  = true
+    }
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "load_balancer" {
+  count                      = var.enable_monitoring ? 1 : 0
+  name                       = "diag-load-balancer"
+  target_resource_id         = module.load_balancer.id
+  log_analytics_workspace_id = module.monitoring[0].workspace_id
+
+  dynamic "enabled_log" {
+    for_each = toset(data.azurerm_monitor_diagnostic_categories.load_balancer[0].log_category_types)
+    content {
+      category = enabled_log.value
+    }
+  }
+
+  dynamic "metric" {
+    for_each = toset(data.azurerm_monitor_diagnostic_categories.load_balancer[0].metrics)
+    content {
+      category = metric.value
+      enabled  = true
+    }
   }
 }
 

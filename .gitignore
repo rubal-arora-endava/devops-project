@@ -26,6 +26,8 @@ replay_pid*
 # Terraform
 *.tfstate
 *.tfstate.backup
+*.tfplan
+tfplan
 .terraform/
 
 # Ansible
