@@ -5,6 +5,25 @@
     cache_valid_time: 3600
   become: yes
 
+- name: Apply available OS package and kernel updates
+  ansible.builtin.apt:
+    upgrade: dist
+    update_cache: yes
+    cache_valid_time: 3600
+  become: yes
+
+- name: Check whether package updates require a reboot
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: reboot_required
+  become: yes
+
+- name: Reboot after kernel updates when required
+  ansible.builtin.reboot:
+    reboot_timeout: 600
+  when: reboot_required.stat.exists
+  become: yes
+
 - name: Install base utility packages
   ansible.builtin.apt:
     name:

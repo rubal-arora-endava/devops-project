@@ -44,7 +44,12 @@ locals {
       ssh = merge(var.web_nsg_rules["ssh"], {
         source_address_prefix = var.admin_source_cidr
       })
-    }
+    },
+    contains(keys(var.web_nsg_rules), "http") ? {
+      http = merge(var.web_nsg_rules["http"], {
+        source_address_prefix = coalesce(var.web_source_cidr, var.admin_source_cidr)
+      })
+    } : {}
   )
 }
 
@@ -76,7 +81,7 @@ module "web_vm_1" {
   subnet_id                  = module.subnets.subnet_ids["web"]
   network_security_group_id  = module.nsg_web.id
   lb_backend_address_pool_id = module.load_balancer.lb_backend_address_pool_id
-  enable_public_ip           = true
+  enable_public_ip           = var.enable_vm_public_ip
   tags                       = var.tags
 }
 
@@ -91,7 +96,7 @@ module "web_vm_2" {
   subnet_id                  = module.subnets.subnet_ids["web"]
   network_security_group_id  = module.nsg_web.id
   lb_backend_address_pool_id = module.load_balancer.lb_backend_address_pool_id
-  enable_public_ip           = true
+  enable_public_ip           = var.enable_vm_public_ip
   tags                       = var.tags
 }
 
@@ -250,4 +255,20 @@ output "vm1_public_ip" {
 
 output "vm2_public_ip" {
   value = module.web_vm_2.public_ip
+}
+
+output "vm1_private_ip" {
+  value = module.web_vm_1.private_ip
+}
+
+output "vm2_private_ip" {
+  value = module.web_vm_2.private_ip
+}
+
+output "vm1_id" {
+  value = module.web_vm_1.id
+}
+
+output "vm2_id" {
+  value = module.web_vm_2.id
 }

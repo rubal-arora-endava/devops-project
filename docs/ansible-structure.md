@@ -6,6 +6,7 @@ The Ansible design for this project follows standard role-based layout.
 
 - `ansible/ansible.cfg` - default settings for inventory and SSH configuration
 - `ansible/inventory/dev.yml` - static host inventory for the development environment
+- `ansible/inventory/group_vars/all.yml` - shared variables used by the dev inventory
 - `ansible/roles/base` - common provisioning, package installation, and user creation
 - `ansible/roles/java` - OpenJDK installation and validation
 - `ansible/roles/webserver` - web server deployment and systemd service configuration for the web server
