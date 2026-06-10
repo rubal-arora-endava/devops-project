@@ -3,12 +3,12 @@ all:
     webservers:
       hosts:
         web01:
-          ansible_host: 10.0.1.4  # replace with VM public IP or private IP reachable from Ansible control node
+          ansible_host: 74.162.155.191  # replace with VM public IP or private IP reachable from Ansible control node
           ansible_user: azureuser
           ansible_ssh_private_key_file: ~/.ssh/devops_eval_key
           server_name: web01
         web02:
-          ansible_host: 10.0.1.5  # replace with second VM public IP or private IP
+          ansible_host: 74.162.155.243  # replace with second VM public IP or private IP
           ansible_user: azureuser
           ansible_ssh_private_key_file: ~/.ssh/devops_eval_key
           server_name: web02

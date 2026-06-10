@@ -1,3 +1,8 @@
+output "id" {
+  description = "Resource ID of the Linux virtual machine."
+  value       = azurerm_linux_virtual_machine.main.id
+}
+
 output "principal_id" {
   description = "Principal ID of the VM system-assigned managed identity."
   value       = azurerm_linux_virtual_machine.main.identity[0].principal_id

@@ -30,7 +30,18 @@ web_nsg_rules = {
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
-    source_address_prefix      = "internet"
+    source_address_prefix      = "134.231.182.94/32"
+    destination_address_prefix = "*"
+    destination_port_range     = "80"
+  }
+
+  http_personal = {
+    name                       = "Allow-HTTP-Personal"
+    priority                   = 210
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_address_prefix      = "45.119.31.47/32"
     destination_address_prefix = "*"
     destination_port_range     = "80"
   }
@@ -42,6 +53,10 @@ ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDFbp2GK1bOfYoszf72oT+zJI
 
 # Replace with your current public IP /32.
 admin_source_cidr = "134.231.182.94/32" #only 1 public IP is allowed for SSH access, so using /32. Update if you need to allow a range of IPs.
+
+# Keep VMs private by default to avoid direct internet exposure findings.
+# If you must run Ansible directly from local WSL without Bastion/VPN, set true only for the short configuration window.
+enable_vm_public_ip = false
 
 # Disable monitoring if you do not have Log Analytics write permission.
 enable_monitoring = true

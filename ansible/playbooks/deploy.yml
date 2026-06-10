@@ -14,7 +14,7 @@
         name: nginx
         state: started
       register: nginx_status
-      ignore_errors: true
+      ignore_errors: true # remove
 
     - name: Check web service health endpoint
       ansible.builtin.uri:

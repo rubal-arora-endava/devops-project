@@ -80,6 +80,18 @@ variable "admin_source_cidr" {
   default     = "0.0.0.0/0"
 }
 
+variable "web_source_cidr" {
+  description = "HTTP access source CIDR block. Defaults to admin_source_cidr for demo environments; set to Internet only when the web tier is intentionally public."
+  type        = string
+  default     = null
+}
+
+variable "enable_vm_public_ip" {
+  description = "Attach public IPs directly to VMs. Keep false for private VMs; enable only for short-lived break-glass demos."
+  type        = bool
+  default     = false
+}
+
 variable "key_vault_name" {
   description = "Globally unique name for the dev Key Vault."
   type        = string
